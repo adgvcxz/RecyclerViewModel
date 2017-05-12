@@ -13,6 +13,8 @@ import com.adgvcxz.IModel
 
 class RxRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
+    val noLayoutId = -1
+
     private var inflater: LayoutInflater? = null
 
     var items: ArrayList<in ViewHolder<IModel>> = arrayListOf()
@@ -25,7 +27,7 @@ class RxRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         if (inflater == null) {
             inflater = LayoutInflater.from(parent.context)
         }
-        if (viewType == -1) {
+        if (viewType == noLayoutId) {
             throw IllegalArgumentException("ViewHolder Model Error")
         }
         return object : RecyclerView.ViewHolder(inflater!!.inflate(viewType, null)){}
@@ -45,10 +47,10 @@ class RxRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     override fun getItemViewType(position: Int): Int {
         val viewHolder = items[position]
-        if (viewHolder is ViewHolder<out IModel>) {
+        if (viewHolder is IView) {
             return viewHolder.layoutId
         }
-        return -1
+        return noLayoutId
     }
 
 }
