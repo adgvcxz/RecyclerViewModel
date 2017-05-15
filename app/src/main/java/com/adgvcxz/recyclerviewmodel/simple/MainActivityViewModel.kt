@@ -3,10 +3,10 @@ package com.adgvcxz.recyclerviewmodel.simple
 import android.view.View
 import com.adgvcxz.IModel
 import com.adgvcxz.ViewModel
-import com.adgvcxz.bindTo
 import com.adgvcxz.recyclerviewmodel.IView
 import com.adgvcxz.recyclerviewmodel.ViewHolder
 import com.jakewharton.rxbinding2.widget.text
+import io.reactivex.subjects.Subject
 import kotlinx.android.synthetic.main.item_example.view.*
 import kotlinx.android.synthetic.main.item_example_1.view.*
 
@@ -16,10 +16,11 @@ import kotlinx.android.synthetic.main.item_example_1.view.*
  * Created by zhaowei on 2017/5/12.
  */
 
+
 class MainActivityViewModel : ViewModel<MainActivityViewModel.Model>(Model()) {
 
     class Model : IModel {
-        val items: List<ViewHolder<out IModel>> = (1..100).map {
+        val items: List<ViewHolder<out IModel>> = (0 until 100).map {
             if (it % 2 == 0) {
                 ItemViewHolder()
             } else {
@@ -35,10 +36,6 @@ class ItemViewHolder : ViewHolder<ItemViewHolder.Model>(Model()) {
         val text1 = "abcd"
         val text2 = "abcd"
     }
-
-    override val layoutId: Int = R.layout.item_example
-
-
 }
 
 class ButtonViewHolder : ViewHolder<ButtonViewHolder.Model>(Model()) {
@@ -48,11 +45,12 @@ class ButtonViewHolder : ViewHolder<ButtonViewHolder.Model>(Model()) {
         val text2 = "abcd"
     }
 
-    override val layoutId: Int = R.layout.item_example_1
 
 }
 
 class TextView: IView<ItemViewHolder> {
+
+    override val layoutId: Int = R.layout.item_example
 
     override fun bind(view: View, viewModel: ItemViewHolder) {
         viewModel.model.map { it.text1 }
@@ -65,6 +63,8 @@ class TextView: IView<ItemViewHolder> {
 }
 
 class ButtonView: IView<ButtonViewHolder> {
+
+    override val layoutId: Int = R.layout.item_example_1
 
     override fun bind(view: View, viewModel: ButtonViewHolder) {
         viewModel.model.map { it.text1 }

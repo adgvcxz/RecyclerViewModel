@@ -8,6 +8,4 @@ import com.adgvcxz.ViewModel
  * Created by zhaowei on 2017/5/11.
  */
 
-abstract class ViewHolder<M : IModel>(initModel: M) : ViewModel<M>(initModel) {
-    abstract val layoutId: Int
-}
+abstract class ViewHolder<M : IModel>(initModel: M) : ViewModel<M>(initModel)

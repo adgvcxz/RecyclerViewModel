@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import com.adgvcxz.IAction
 import com.adgvcxz.IModel
 import com.adgvcxz.bindTo
+import kotlin.reflect.KClass
 
 
 /**
@@ -20,7 +21,7 @@ class RxRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var inflater: LayoutInflater? = null
 
-    var configureCell: ((Int) -> IView<*>)? = null
+    lateinit var configureCell: ((ViewHolder<out IModel>) -> IView<*>)
 
     var items: List<ViewHolder<out IModel>> = arrayListOf()
         set(value) {
@@ -31,6 +32,9 @@ class RxRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     internal var itemClickListener: View.OnClickListener? = null
 
     internal val viewMap: HashMap<View, IView<ViewHolder<*>>?> = HashMap()
+    internal val layoutMap: HashMap<KClass<ViewHolder<out IModel>>, IView<ViewHolder<*>>> = HashMap()
+
+    private lateinit var viewModel: ViewHolder<out IModel>
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         if (inflater == null) {
@@ -43,8 +47,8 @@ class RxRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         if (itemClickListener != null) {
             view.setOnClickListener(itemClickListener)
         }
-        val iview: IView<ViewHolder<*>>? = configureCell?.invoke(viewType) as IView<ViewHolder<*>>?
-        viewMap.put(view, iview)
+        viewMap.put(view, layoutMap[viewModel::class])
+        layoutMap.remove(viewModel::class)
         return object : RecyclerView.ViewHolder(view) {}
     }
 
@@ -56,18 +60,6 @@ class RxRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 .bindTo(items[position].action)
 
         viewMap[holder.itemView]?.bind(holder.itemView, items[position])
-
-//        val iView = items[position]
-//        configureCell?.invoke(holder, items[position], position)
-//        if (iView.viewModel is ViewHolder<IModel>) {
-//            holder.itemView.attach()
-//                    .filter { it == AttachEvent.Detach }
-//                    .map { IAction.dispose }
-//                    .bindTo(iView.viewModel.action)
-////            viewHolder.model.subscribe()
-//            iView.viewModel.model.subscribe()
-//            iView.bind(holder.itemView)
-//        }
     }
 
     override fun getItemCount(): Int {
@@ -75,7 +67,15 @@ class RxRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
 
     override fun getItemViewType(position: Int): Int {
-        return items[position].layoutId
+        var id = layoutMap[items[position]::class]?.layoutId
+        viewModel = items[position]
+        if (id != null) {
+            return id
+        } else {
+            val item = configureCell.invoke(viewModel)
+            id = item.layoutId
+            layoutMap.put(viewModel::class as KClass<ViewHolder<out IModel>>, item as IView<ViewHolder<*>>)
+        }
+        return id
     }
-
 }

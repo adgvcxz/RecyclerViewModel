@@ -10,6 +10,7 @@ import com.adgvcxz.ViewModel
  */
 interface IView<in V: ViewModel<out IModel>> {
 
+    val layoutId: Int
 
     fun initView(view: View) {
 

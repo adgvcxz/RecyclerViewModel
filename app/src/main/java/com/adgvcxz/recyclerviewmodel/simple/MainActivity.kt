@@ -25,10 +25,9 @@ class MainActivity : AppCompatActivity() {
         recyclerView.adapter = adapter
 
         adapter.configureCell = {
-            if (it % 2 == 0) {
-                TextView()
-            } else {
-                ButtonView()
+            when (it) {
+                is ButtonViewHolder -> ButtonView()
+                else -> TextView()
             }
         }
 
