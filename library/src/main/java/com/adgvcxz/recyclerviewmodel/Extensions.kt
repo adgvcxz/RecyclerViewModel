@@ -9,5 +9,9 @@ import io.reactivex.Observable
  */
 
 fun View.attach(): Observable<AttachEvent> {
-    return ViewAttachesObservable(this).share()
+    return ViewAttachesObservable(this)
+}
+
+fun RxRecyclerAdapter.itemClicks(): Observable<Int> {
+    return ItemClickObservable(this)
 }
