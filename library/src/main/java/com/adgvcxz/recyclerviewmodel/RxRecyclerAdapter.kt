@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.adgvcxz.IAction
 import com.adgvcxz.IModel
+import com.adgvcxz.ViewModel
 import com.adgvcxz.bindTo
 import kotlin.reflect.KClass
 
@@ -21,9 +22,9 @@ class RxRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var inflater: LayoutInflater? = null
 
-    lateinit var configureCell: ((ViewHolder<out IModel>) -> IView<*>)
+    lateinit var configureCell: ((ViewModel<out IModel>) -> IView<*>)
 
-    var items: List<ViewHolder<out IModel>> = arrayListOf()
+    var items: List<ViewModel<out IModel>> = arrayListOf()
         set(value) {
             field = value
             notifyDataSetChanged()
@@ -31,10 +32,10 @@ class RxRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     internal var itemClickListener: View.OnClickListener? = null
 
-    internal val viewMap: HashMap<View, IView<ViewHolder<*>>?> = HashMap()
-    internal val layoutMap: HashMap<KClass<ViewHolder<out IModel>>, IView<ViewHolder<*>>> = HashMap()
+    internal val viewMap: HashMap<View, IView<ViewModel<*>>?> = HashMap()
+    internal val layoutMap: HashMap<KClass<ViewModel<out IModel>>, IView<ViewModel<*>>> = HashMap()
 
-    private lateinit var viewModel: ViewHolder<out IModel>
+    private lateinit var viewModel: ViewModel<out IModel>
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         if (inflater == null) {
@@ -74,7 +75,7 @@ class RxRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         } else {
             val item = configureCell.invoke(viewModel)
             id = item.layoutId
-            layoutMap.put(viewModel::class as KClass<ViewHolder<out IModel>>, item as IView<ViewHolder<*>>)
+            layoutMap.put(viewModel::class as KClass<ViewModel<out IModel>>, item as IView<ViewModel<*>>)
         }
         return id
     }
