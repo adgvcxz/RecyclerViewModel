@@ -3,7 +3,9 @@ package com.adgvcxz.recyclerviewmodel
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import com.adgvcxz.IAction
 import com.adgvcxz.IModel
+import com.adgvcxz.bindTo
 
 
 /**
@@ -36,6 +38,10 @@ class RxRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val viewHolder = items[position]
         if (viewHolder is ViewHolder<out IModel>) {
+            holder.itemView.attach()
+                    .filter { it == AttachEvent.Detach }
+                    .map { IAction.dispose }
+                    .bindTo(viewHolder.action)
             viewHolder.model.subscribe()
             viewHolder.bind(holder.itemView)
         }

@@ -12,6 +12,10 @@ import io.reactivex.android.MainThreadDisposable
 
 class ViewAttachesObservable(private val view: View): Observable<AttachEvent>() {
 
+    init {
+        this.share()
+    }
+
     override fun subscribeActual(observer: Observer<in AttachEvent>) {
         val listener = Listener(view, observer)
         view.addOnAttachStateChangeListener(listener)
