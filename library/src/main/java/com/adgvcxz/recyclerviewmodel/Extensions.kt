@@ -1,7 +1,13 @@
 package com.adgvcxz.recyclerviewmodel
 
+import android.support.v7.util.DiffUtil
 import android.view.View
+import com.adgvcxz.IModel
+import com.adgvcxz.ViewModel
 import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 
 /**
  * zhaowei
@@ -14,4 +20,16 @@ fun View.attach(): Observable<AttachEvent> {
 
 fun RxRecyclerAdapter.itemClicks(): Observable<Int> {
     return ItemClickObservable(this)
+}
+
+fun Observable<List<ViewModel<out IModel>>>.bindTo(adapter: RxRecyclerAdapter): Disposable {
+    return this.observeOn(Schedulers.computation())
+            .scan(Pair<List<ViewModel<out IModel>>,
+                    DiffUtil.DiffResult?>(arrayListOf<ViewModel<out IModel>>(), null)) { (first), list ->
+                val diff = ItemDiffCallback(first, list)
+                val result = DiffUtil.calculateDiff(diff, true)
+                Pair(list, result)
+            }
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(adapter)
 }

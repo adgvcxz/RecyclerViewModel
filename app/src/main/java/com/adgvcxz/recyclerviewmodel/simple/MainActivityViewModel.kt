@@ -1,5 +1,6 @@
 package com.adgvcxz.recyclerviewmodel.simple
 
+import android.util.Log
 import android.view.View
 import com.adgvcxz.*
 import com.adgvcxz.recyclerviewmodel.IView
@@ -25,12 +26,12 @@ class Event
 class MainActivityViewModel : ViewModel<MainActivityViewModel.Model>(Model()) {
 
     class Model : IModel {
-        var items: List<ViewModel<out IModel>> = (0 until 5).map {
-            if (it % 2 == 0) {
-                ItemViewModel()
-            } else {
+        var items: List<ViewModel<out IModel>> = (0 until 1).map {
+//            if (it % 2 == 0) {
+//                ItemViewModel()
+//            } else {
                 ButtonViewModel()
-            }
+//            }
         }
     }
 
@@ -46,12 +47,15 @@ class MainActivityViewModel : ViewModel<MainActivityViewModel.Model>(Model()) {
 
     override fun scan(model: Model, mutation: IMutation): Model {
         when(mutation) {
-            Mutation.add100Items -> model.items += (0 until 10).map {
-                if (it % 2 == 0) {
-                    ItemViewModel()
-                } else {
+            Mutation.add100Items -> {
+                val items = (0 until 1).map {
+                    //                if (it % 2 == 0) {
+//                    ItemViewModel()
+//                } else {
                     ButtonViewModel()
+//                }
                 }
+                model.items = items + model.items
             }
         }
         return model
@@ -66,24 +70,6 @@ class ItemViewModel : ViewModel<ItemViewModel.Model>(Model()) {
     }
 }
 
-class ButtonViewModel : ViewModel<ButtonViewModel.Model>(Model()) {
-
-    class Model : IModel {
-        val text1 = "abcd"
-        val text2 = "abcd"
-    }
-
-    enum class Action: IAction {
-        button1DidClick
-    }
-
-    override fun mutate(action: IAction): Observable<IMutation> {
-        when(action) {
-            Action.button1DidClick -> event.onNext(Event())
-        }
-        return super.mutate(action)
-    }
-}
 
 class TextView: IView<ItemViewModel> {
 
@@ -99,6 +85,41 @@ class TextView: IView<ItemViewModel> {
 
 }
 
+class ButtonViewModel : ViewModel<ButtonViewModel.Model>(Model()) {
+
+    class Model : IModel {
+        val text1 = "abcd"
+        var text2 = "abcd"
+    }
+
+    enum class Action: IAction {
+        button1DidClick,
+        button2DidClick
+    }
+
+    enum class Mutation(var value: Any): IMutation {
+        updateText2(value = String),
+    }
+
+    override fun mutate(action: IAction): Observable<IMutation> {
+        when(action) {
+            Action.button1DidClick -> event.onNext(Event())
+            Action.button2DidClick -> return Observable.just(Mutation.updateText2.also { it.value = "${System.currentTimeMillis()}" })
+        }
+        return super.mutate(action)
+    }
+
+    override fun scan(model: Model, mutation: IMutation): Model {
+        when(mutation as Mutation) {
+            Mutation.updateText2 -> {
+                model.text2 = (mutation.value as String)
+                Log.e("zhaow", model.text2)
+            }
+        }
+        return model
+    }
+}
+
 class ButtonView: IView<ButtonViewModel> {
 
     override val layoutId: Int = R.layout.item_example_1
@@ -112,6 +133,10 @@ class ButtonView: IView<ButtonViewModel> {
 
         view.button1.clicks()
                 .map { ButtonViewModel.Action.button1DidClick }
+                .bindTo(viewModel.action)
+
+        view.button2.clicks()
+                .map { ButtonViewModel.Action.button2DidClick }
                 .bindTo(viewModel.action)
     }
 }

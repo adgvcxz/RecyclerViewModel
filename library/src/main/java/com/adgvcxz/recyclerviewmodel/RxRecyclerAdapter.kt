@@ -1,5 +1,6 @@
 package com.adgvcxz.recyclerviewmodel
 
+import android.support.v7.util.DiffUtil
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
@@ -8,6 +9,7 @@ import com.adgvcxz.IAction
 import com.adgvcxz.IModel
 import com.adgvcxz.ViewModel
 import com.adgvcxz.bindTo
+import io.reactivex.functions.Consumer
 import kotlin.reflect.KClass
 
 
@@ -16,19 +18,13 @@ import kotlin.reflect.KClass
  * Created by zhaowei on 2017/5/11.
  */
 
-class RxRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-
-    val noLayoutId = -1
+class RxRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(), Consumer<Pair<List<ViewModel<out IModel>>, DiffUtil.DiffResult?>> {
 
     private var inflater: LayoutInflater? = null
 
     lateinit var configureCell: ((ViewModel<out IModel>) -> IView<*>)
 
-    var items: List<ViewModel<out IModel>> = arrayListOf()
-        set(value) {
-            field = value
-            notifyDataSetChanged()
-        }
+    private var items: List<ViewModel<out IModel>> = arrayListOf()
 
     internal var itemClickListener: View.OnClickListener? = null
 
@@ -40,9 +36,6 @@ class RxRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         if (inflater == null) {
             inflater = LayoutInflater.from(parent.context)
-        }
-        if (viewType == noLayoutId) {
-            throw IllegalArgumentException("ViewHolder Model Error")
         }
         val view = inflater!!.inflate(viewType, parent, false)
         if (itemClickListener != null) {
@@ -78,5 +71,10 @@ class RxRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             layoutMap.put(viewModel::class as KClass<ViewModel<out IModel>>, item as IView<ViewModel<*>>)
         }
         return id
+    }
+
+    override fun accept(pair: Pair<List<ViewModel<out IModel>>, DiffUtil.DiffResult?>) {
+        this.items = pair.first
+        pair.second?.dispatchUpdatesTo(this)
     }
 }

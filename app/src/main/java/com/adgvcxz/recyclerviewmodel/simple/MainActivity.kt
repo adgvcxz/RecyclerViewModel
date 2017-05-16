@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
 import com.adgvcxz.recyclerviewmodel.RxRecyclerAdapter
+import com.adgvcxz.recyclerviewmodel.bindTo
 import com.adgvcxz.recyclerviewmodel.itemClicks
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -26,13 +27,13 @@ class MainActivity : AppCompatActivity() {
 
         adapter.configureCell = {
             when (it) {
-                is ButtonViewHolder -> ButtonView()
+                is ButtonViewModel -> ButtonView()
                 else -> TextView()
             }
         }
 
         viewModel.model.map { it.items }
-                .subscribe { adapter.items = it }
+                .bindTo(adapter)
 
         adapter.itemClicks()
                 .subscribe { Log.e("zhaow", "$it") }
