@@ -22,13 +22,19 @@ fun RxRecyclerAdapter.itemClicks(): Observable<Int> {
     return ItemClickObservable(this)
 }
 
-fun Observable<List<ViewModel<out IModel>>>.bindTo(adapter: RxRecyclerAdapter): Disposable {
+
+
+fun Observable<List<ViewModel<out IModel>>>.bindTo(adapter: RxRecyclerAdapter, anim: Boolean = false): Disposable {
     return this.observeOn(Schedulers.computation())
             .scan(Pair<List<ViewModel<out IModel>>,
                     DiffUtil.DiffResult?>(arrayListOf<ViewModel<out IModel>>(), null)) { (first), list ->
-                val diff = ItemDiffCallback(first, list)
-                val result = DiffUtil.calculateDiff(diff, true)
-                Pair(list, result)
+                if (anim) {
+                    val diff = ItemDiffCallback(first, list)
+                    val result = DiffUtil.calculateDiff(diff, true)
+                    Pair(list, result)
+                } else {
+                    Pair(list, null)
+                }
             }
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(adapter)

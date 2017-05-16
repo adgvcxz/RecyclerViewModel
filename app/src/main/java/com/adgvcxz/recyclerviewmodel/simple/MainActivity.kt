@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
+import com.adgvcxz.bindTo
 import com.adgvcxz.recyclerviewmodel.RxRecyclerAdapter
 import com.adgvcxz.recyclerviewmodel.bindTo
 import com.adgvcxz.recyclerviewmodel.itemClicks
@@ -27,15 +28,27 @@ class MainActivity : AppCompatActivity() {
 
         adapter.configureCell = {
             when (it) {
+                is LoadingViewModel -> LoadingView()
                 is ButtonViewModel -> ButtonView()
                 else -> TextView()
             }
         }
 
         viewModel.model.map { it.items }
-                .bindTo(adapter)
+                .bindTo(adapter, anim = true)
 
         adapter.itemClicks()
                 .subscribe { Log.e("zhaow", "$it") }
+
+        adapter.attach()
+                .filter {
+                    Log.e("zhaow", "value $it ${adapter.itemCount}  ${it == adapter.itemCount - 1}")
+                    it == adapter.itemCount - 1
+                }
+                .map {
+                    Log.e("zhaow", "hahahahahaha")
+                    MainActivityViewModel.Action.loadMore
+                }
+                .bindTo(viewModel.action)
     }
 }

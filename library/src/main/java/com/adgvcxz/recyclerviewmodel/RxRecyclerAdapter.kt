@@ -9,7 +9,10 @@ import com.adgvcxz.IAction
 import com.adgvcxz.IModel
 import com.adgvcxz.ViewModel
 import com.adgvcxz.bindTo
+import io.reactivex.Observable
 import io.reactivex.functions.Consumer
+import io.reactivex.subjects.PublishSubject
+import io.reactivex.subjects.Subject
 import kotlin.reflect.KClass
 
 
@@ -33,6 +36,8 @@ class RxRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(), Consu
 
     private lateinit var viewModel: ViewModel<out IModel>
 
+    private val attach: Subject<Int> = PublishSubject.create<Int>().toSerialized()
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         if (inflater == null) {
             inflater = LayoutInflater.from(parent.context)
@@ -47,6 +52,11 @@ class RxRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(), Consu
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+
+        holder.itemView.attach()
+                .filter { it == AttachEvent.Attach }
+                .doOnNext { attach.onNext(position) }
+                .subscribe()
 
         holder.itemView.attach()
                 .filter { it == AttachEvent.Detach }
@@ -75,6 +85,14 @@ class RxRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(), Consu
 
     override fun accept(pair: Pair<List<ViewModel<out IModel>>, DiffUtil.DiffResult?>) {
         this.items = pair.first
-        pair.second?.dispatchUpdatesTo(this)
+        if (pair.second == null) {
+            notifyDataSetChanged()
+        } else {
+            pair.second?.dispatchUpdatesTo(this)
+        }
+    }
+
+    fun attach(): Observable<Int> {
+        return attach.distinctUntilChanged()
     }
 }
