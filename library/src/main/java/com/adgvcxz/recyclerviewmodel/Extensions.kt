@@ -23,7 +23,6 @@ fun RxRecyclerAdapter.itemClicks(): Observable<Int> {
 }
 
 
-
 fun Observable<List<ViewModel<out IModel>>>.bindTo(adapter: RxRecyclerAdapter, anim: Boolean = false): Disposable {
     return this.observeOn(Schedulers.computation())
             .scan(Pair<List<ViewModel<out IModel>>,

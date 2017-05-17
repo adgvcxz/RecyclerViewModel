@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.util.Log
 import com.adgvcxz.bindTo
+import com.adgvcxz.recyclerviewmodel.RecyclerViewModel
 import com.adgvcxz.recyclerviewmodel.RxRecyclerAdapter
 import com.adgvcxz.recyclerviewmodel.bindTo
 import com.adgvcxz.recyclerviewmodel.itemClicks
@@ -34,8 +35,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        viewModel.model.map { it.items }
-                .bindTo(adapter, anim = true)
+//        viewModel.model.map { it.items }
+//                .bindTo(adapter, anim = true)
+
+        adapter.viewModel = viewModel.listViewModel
 
         adapter.itemClicks()
                 .subscribe { Log.e("zhaow", "$it") }
@@ -50,5 +53,8 @@ class MainActivity : AppCompatActivity() {
                     MainActivityViewModel.Action.loadMore
                 }
                 .bindTo(viewModel.action)
+
+        adapter.viewModel.action.onNext(RecyclerViewModel.Action.refresh)
+
     }
 }

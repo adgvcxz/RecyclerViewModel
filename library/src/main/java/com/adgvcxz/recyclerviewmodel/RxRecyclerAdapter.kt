@@ -2,6 +2,7 @@ package com.adgvcxz.recyclerviewmodel
 
 import android.support.v7.util.DiffUtil
 import android.support.v7.widget.RecyclerView
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,22 +22,31 @@ import kotlin.reflect.KClass
  * Created by zhaowei on 2017/5/11.
  */
 
-class RxRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(), Consumer<Pair<List<ViewModel<out IModel>>, DiffUtil.DiffResult?>> {
+class RxRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(),
+        Consumer<Pair<List<ViewModel<out IModel>>, DiffUtil.DiffResult?>> {
 
     private var inflater: LayoutInflater? = null
 
-    lateinit var configureCell: ((ViewModel<out IModel>) -> IView<*>)
-
-    private var items: List<ViewModel<out IModel>> = arrayListOf()
-
     internal var itemClickListener: View.OnClickListener? = null
 
-    internal val viewMap: HashMap<View, IView<ViewModel<*>>?> = HashMap()
-    internal val layoutMap: HashMap<KClass<ViewModel<out IModel>>, IView<ViewModel<*>>> = HashMap()
+    private val viewMap: HashMap<View, IView<ViewModel<*>>?> = HashMap()
 
-    private lateinit var viewModel: ViewModel<out IModel>
+    private val layoutMap: HashMap<KClass<ViewModel<out IModel>>, IView<ViewModel<*>>> = HashMap()
+
+    private lateinit var itemViewModel: ViewModel<out IModel>
 
     private val attach: Subject<Int> = PublishSubject.create<Int>().toSerialized()
+
+    lateinit var configureCell: ((ViewModel<out IModel>) -> IView<*>)
+
+    var animation: Boolean = false
+
+    var viewModel: RecyclerViewModel = RecyclerViewModel()
+        set(value) {
+            field = value
+            value.model.map { it.items }
+                    .bindTo(this, animation)
+        }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         if (inflater == null) {
@@ -46,45 +56,39 @@ class RxRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>(), Consu
         if (itemClickListener != null) {
             view.setOnClickListener(itemClickListener)
         }
-        viewMap.put(view, layoutMap[viewModel::class])
-        layoutMap.remove(viewModel::class)
+        viewMap.put(view, layoutMap[itemViewModel::class])
+        layoutMap.remove(itemViewModel::class)
         return object : RecyclerView.ViewHolder(view) {}
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
 
         holder.itemView.attach()
-                .filter { it == AttachEvent.Attach }
-                .doOnNext { attach.onNext(position) }
-                .subscribe()
-
-        holder.itemView.attach()
                 .filter { it == AttachEvent.Detach }
                 .map { IAction.dispose }
-                .bindTo(items[position].action)
+                .bindTo(viewModel.currentModel.items[position].action)
 
-        viewMap[holder.itemView]?.bind(holder.itemView, items[position])
+        viewMap[holder.itemView]?.bind(holder.itemView, viewModel.currentModel.items[position])
     }
 
     override fun getItemCount(): Int {
-        return items.size
+        return viewModel.count
     }
 
     override fun getItemViewType(position: Int): Int {
-        var id = layoutMap[items[position]::class]?.layoutId
-        viewModel = items[position]
+        var id = layoutMap[viewModel.currentModel.items[position]::class]?.layoutId
+        itemViewModel = viewModel.currentModel.items[position]
         if (id != null) {
             return id
         } else {
-            val item = configureCell.invoke(viewModel)
+            val item = configureCell.invoke(itemViewModel)
             id = item.layoutId
-            layoutMap.put(viewModel::class as KClass<ViewModel<out IModel>>, item as IView<ViewModel<*>>)
+            layoutMap.put(viewModel.currentModel.items[position]::class as KClass<ViewModel<out IModel>>, item as IView<ViewModel<*>>)
         }
         return id
     }
 
     override fun accept(pair: Pair<List<ViewModel<out IModel>>, DiffUtil.DiffResult?>) {
-        this.items = pair.first
         if (pair.second == null) {
             notifyDataSetChanged()
         } else {
