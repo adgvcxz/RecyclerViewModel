@@ -35,24 +35,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-//        viewModel.model.map { it.items }
-//                .bindTo(adapter, anim = true)
-
         adapter.viewModel = viewModel.listViewModel
 
         adapter.itemClicks()
                 .subscribe { Log.e("zhaow", "$it") }
 
-        adapter.attach()
-                .filter {
-                    Log.e("zhaow", "value $it ${adapter.itemCount}  ${it == adapter.itemCount - 1}")
-                    it == adapter.itemCount - 1
-                }
-                .map {
-                    Log.e("zhaow", "hahahahahaha")
-                    MainActivityViewModel.Action.loadMore
-                }
-                .bindTo(viewModel.action)
 
         adapter.viewModel.action.onNext(RecyclerViewModel.Action.refresh)
 
