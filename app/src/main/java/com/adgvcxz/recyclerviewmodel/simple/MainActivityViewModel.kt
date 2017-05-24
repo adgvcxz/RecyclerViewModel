@@ -12,7 +12,6 @@ import io.reactivex.subjects.Subject
 import kotlinx.android.synthetic.main.item_example.view.*
 import kotlinx.android.synthetic.main.item_example_1.view.*
 import java.util.concurrent.TimeUnit
-import kotlin.reflect.KClass
 
 
 /**
@@ -109,22 +108,22 @@ class ButtonViewModel : ViewModel<ButtonViewModel.Model>(Model()) {
         button2DidClick
     }
 
-    enum class Mutation(var value: Any) : IMutation {
-        updateText2(value = String),
+    sealed class StringMutation(val value: String) : IMutation {
+        class updateText(text: String) : StringMutation(text)
     }
 
     override fun mutate(action: IAction): Observable<IMutation> {
         when (action) {
             Action.button1DidClick -> event.onNext(Event())
-            Action.button2DidClick -> return Observable.just(Mutation.updateText2.also { it.value = "${System.currentTimeMillis()}" })
+            Action.button2DidClick -> return Observable.just(StringMutation.updateText("${System.currentTimeMillis()}"))
         }
         return super.mutate(action)
     }
 
     override fun scan(model: Model, mutation: IMutation): Model {
-        when (mutation as Mutation) {
-            Mutation.updateText2 -> {
-                model.text2 = (mutation.value as String)
+        when (mutation) {
+            is StringMutation.updateText -> {
+                model.text2 = mutation.value
             }
         }
         return model
