@@ -27,6 +27,8 @@ class MainActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
 
+        recyclerView.recycledViewPool
+
         adapter.configureCell = {
             when (it) {
                 is LoadingViewModel -> LoadingView()
